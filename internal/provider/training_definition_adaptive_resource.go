@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"strconv"
+	"terraform-provider-crczp/internal/plan_modifiers"
 
 	"github.com/cyberrangecz/go-client/pkg/crczp"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -53,6 +55,7 @@ func (r *trainingDefinitionAdaptiveResource) Schema(_ context.Context, _ resourc
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					plan_modifiers.JSONNormalizePlanModifier{},
 				},
 			},
 		},
@@ -123,6 +126,13 @@ func (r *trainingDefinitionAdaptiveResource) Read(ctx context.Context, req resou
 
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read training definition adaptive, got error: %s", err))
+		return
+	}
+
+	diagnostics := diag.Diagnostics{}
+	definition.Content, diagnostics = plan_modifiers.NormalizeJSON(definition.Content)
+	if diagnostics != nil {
+		resp.Diagnostics.Append(diagnostics...)
 		return
 	}
 
