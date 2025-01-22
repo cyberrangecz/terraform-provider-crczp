@@ -13,7 +13,6 @@ const atdDefinition = `
  "prerequisites" : [ ],
  "outcomes" : [ ],
  "state" : "UNRELEASED",
- "show_stepper_bar" : true,
  "phases" : [ ],
  "estimated_duration" : 0
 }
@@ -22,7 +21,6 @@ const atdDefinition = `
 func TestAccTrainingDefinitionAdaptiveResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		ExternalProviders:        gitlabProvider,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{

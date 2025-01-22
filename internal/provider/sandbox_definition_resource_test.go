@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const gitlabTestingDefinitionTag = gitlabProviderConfig + `
+const gitlabTestingDefinitionTag = `
 variable "TAG_NAME" {}
 
 resource "gitlab_project_tag" "terraform_testing_definition" {
@@ -22,18 +22,17 @@ resource "gitlab_project_tag" "terraform_testing_definition" {
 func TestAccSandboxDefinitionResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		ExternalProviders:        gitlabProvider,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
 				Config: providerConfig + gitlabTestingDefinitionTag + `
 resource "crczp_sandbox_definition" "test" {
-  url = "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
+  url = "https://github.com/cyberrangecz/terraform-testing-definition.git"
   rev = gitlab_project_tag.terraform_testing_definition[0].name
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "url", "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"),
+					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "url", "https://github.com/cyberrangecz/terraform-testing-definition.git"),
 					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "rev", os.Getenv("TF_VAR_TAG_NAME")+"-0"),
 					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "name", "terraform-testing-definition"),
 					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "id"),
@@ -55,12 +54,12 @@ resource "crczp_sandbox_definition" "test" {
 			{
 				Config: providerConfig + gitlabTestingDefinitionTag + `
 resource "crczp_sandbox_definition" "test" {
-  url = "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
+  url = "https://github.com/cyberrangecz/terraform-testing-definition.git"
   rev = gitlab_project_tag.terraform_testing_definition[1].name
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "url", "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"),
+					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "url", "https://github.com/cyberrangecz/terraform-testing-definition.git"),
 					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "rev", os.Getenv("TF_VAR_TAG_NAME")+"-1"),
 					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "name", "terraform-testing-definition"),
 					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "id"),

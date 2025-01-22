@@ -13,7 +13,6 @@ const ltdDefinition = `
  "prerequisites" : [ ],
  "outcomes" : [ ],
  "state" : "UNRELEASED",
- "show_stepper_bar" : true,
  "levels" : [ ],
  "estimated_duration" : 0,
  "variant_sandboxes" : false
@@ -23,7 +22,6 @@ const ltdDefinition = `
 func TestAccTrainingDefinitionResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		ExternalProviders:        gitlabProvider,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
