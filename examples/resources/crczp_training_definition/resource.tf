@@ -4,7 +4,6 @@ resource "crczp_training_definition" "example" {
       title              = "test"
       description        = null
       state              = "UNRELEASED"
-      show_stepper_bar   = true
       variant_sandboxes  = false
       estimated_duration = 0
       levels             = []

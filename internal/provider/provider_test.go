@@ -3,34 +3,65 @@ package provider_test
 import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-
 	"terraform-provider-crczp/internal/provider"
 )
 
 const (
 	providerConfig = `
 provider "crczp" {
-  endpoint  = "https://images.crp.crczp.muni.cz"
+  endpoint    = "https://lab.crp.crczp.muni.cz"
+  retry_count = 3
 }
 `
-	gitlabProviderConfig = `
-provider "gitlab" {
-  base_url = "https://gitlab.ics.muni.cz/api/v4"
-}
-`
-	gitlabTestingDefinition = gitlabProviderConfig + `
+
+	gitlabTestingDefinition = `
 variable "TAG_NAME" {}
 
-resource "gitlab_project_tag" "terraform_testing_definition" {
-  name    = var.TAG_NAME
-  ref     = "master"
-  project = "5211"
+resource "null_resource" "git_tag" {
+  provisioner "local-exec" {
+    command = <<EOT
+    cat <<EOF > key
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    QyNTUxOQAAACBcy6PgN52E5RRdEvPIyrRzWGGB00z0htPTZfTZHLSdjAAAAJg9eMq9PXjK
+    vQAAAAtzc2gtZWQyNTUxOQAAACBcy6PgN52E5RRdEvPIyrRzWGGB00z0htPTZfTZHLSdjA
+    AAAEBD2CRf7TB/rCgGdryTHa3S0bg0Z2QE/tshWZEi+Izzg1zLo+A3nYTlFF0S88jKtHNY
+    YYHTTPSG09Nl9NkctJ2MAAAAD3pkZW5la0Bza2VsbGlnZQECAwQFBg==
+    -----END OPENSSH PRIVATE KEY-----
+    EOF
+    chmod 600 key
+    GIT_SSH_COMMAND='ssh -i key -o IdentitiesOnly=yes' git clone git@github.com:cyberrangecz/terraform-testing-definition.git repo
+    cd repo
+    git tag ${var.TAG_NAME}
+    git push origin ${var.TAG_NAME}
+    EOT
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<EOT
+    cat <<EOF > key
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    QyNTUxOQAAACBcy6PgN52E5RRdEvPIyrRzWGGB00z0htPTZfTZHLSdjAAAAJg9eMq9PXjK
+    vQAAAAtzc2gtZWQyNTUxOQAAACBcy6PgN52E5RRdEvPIyrRzWGGB00z0htPTZfTZHLSdjA
+    AAAEBD2CRf7TB/rCgGdryTHa3S0bg0Z2QE/tshWZEi+Izzg1zLo+A3nYTlFF0S88jKtHNY
+    YYHTTPSG09Nl9NkctJ2MAAAAD3pkZW5la0Bza2VsbGlnZQECAwQFBg==
+    -----END OPENSSH PRIVATE KEY-----
+    EOF
+    chmod 600 key
+    GIT_SSH_COMMAND='ssh -i key -o IdentitiesOnly=yes' git clone git@github.com:cyberrangecz/terraform-testing-definition.git repo || true
+    cd repo
+    git push --delete origin ${var.TAG_NAME}
+    EOT
+  }
 }
 
 resource "crczp_sandbox_definition" "test" {
   url = "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
-  rev = gitlab_project_tag.terraform_testing_definition.name
+  rev = TAG_NAME
+  depends_on = [
+    null_resource.git_tag
+  ]
 }
 `
 )
@@ -41,13 +72,6 @@ resource "crczp_sandbox_definition" "test" {
 // reattach.
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"crczp": providerserver.NewProtocol6WithError(provider.New("test")()),
-}
-
-var gitlabProvider = map[string]resource.ExternalProvider{
-	"gitlab": {
-		Source:            "gitlabhq/gitlab",
-		VersionConstraint: "15.11.0",
-	},
 }
 
 //func testAccPreCheck(t *testing.T) {

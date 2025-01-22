@@ -9,7 +9,6 @@ import (
 func TestAccSandboxAllocationUnitResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		ExternalProviders:        gitlabProvider,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
