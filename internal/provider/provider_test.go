@@ -5,13 +5,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
-	"terraform-provider-kypo/internal/provider"
+	"terraform-provider-crczp/internal/provider"
 )
 
 const (
 	providerConfig = `
-provider "kypo" {
-  endpoint  = "https://images.crp.kypo.muni.cz"
+provider "crczp" {
+  endpoint  = "https://images.crp.crczp.muni.cz"
 }
 `
 	gitlabProviderConfig = `
@@ -28,8 +28,8 @@ resource "gitlab_project_tag" "terraform_testing_definition" {
   project = "5211"
 }
 
-resource "kypo_sandbox_definition" "test" {
-  url = "https://gitlab.ics.muni.cz/muni-kypo-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
+resource "crczp_sandbox_definition" "test" {
+  url = "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
   rev = gitlab_project_tag.terraform_testing_definition.name
 }
 `
@@ -40,7 +40,7 @@ resource "kypo_sandbox_definition" "test" {
 // CLI command executed to create a provider server to which the CLI can
 // reattach.
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"kypo": providerserver.NewProtocol6WithError(provider.New("test")()),
+	"crczp": providerserver.NewProtocol6WithError(provider.New("test")()),
 }
 
 var gitlabProvider = map[string]resource.ExternalProvider{

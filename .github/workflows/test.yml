@@ -75,8 +75,8 @@ jobs:
       - env:
           TF_ACC: "1"
           TF_VAR_TAG_NAME: "${{ github.ref_name }}-${{ github.run_id }}-${{ matrix.terraform }}"
-          KYPO_USERNAME: ${{ secrets.KYPO_USERNAME }}
-          KYPO_PASSWORD: ${{ secrets.KYPO_PASSWORD }}
+          CRCZP_USERNAME: ${{ secrets.CRCZP_USERNAME }}
+          CRCZP_PASSWORD: ${{ secrets.CRCZP_PASSWORD }}
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: go test -v -cover ./internal/provider/ -timeout 60m
         timeout-minutes: 120

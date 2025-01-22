@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"terraform-provider-kypo/internal/validators"
+	"terraform-provider-crczp/internal/validators"
 )
 
 func TestTimeDuration(t *testing.T) {

@@ -27,49 +27,49 @@ func TestAccSandboxDefinitionResource(t *testing.T) {
 			// Create and Read testing
 			{
 				Config: providerConfig + gitlabTestingDefinitionTag + `
-resource "kypo_sandbox_definition" "test" {
-  url = "https://gitlab.ics.muni.cz/muni-kypo-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
+resource "crczp_sandbox_definition" "test" {
+  url = "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
   rev = gitlab_project_tag.terraform_testing_definition[0].name
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("kypo_sandbox_definition.test", "url", "https://gitlab.ics.muni.cz/muni-kypo-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"),
-					resource.TestCheckResourceAttr("kypo_sandbox_definition.test", "rev", os.Getenv("TF_VAR_TAG_NAME")+"-0"),
-					resource.TestCheckResourceAttr("kypo_sandbox_definition.test", "name", "terraform-testing-definition"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "id"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.id"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.sub"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.full_name"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.given_name"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.family_name"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.mail"),
+					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "url", "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"),
+					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "rev", os.Getenv("TF_VAR_TAG_NAME")+"-0"),
+					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "name", "terraform-testing-definition"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "id"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.id"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.sub"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.full_name"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.given_name"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.family_name"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.mail"),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "kypo_sandbox_definition.test",
+				ResourceName:      "crczp_sandbox_definition.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			// Update and Read testing
 			{
 				Config: providerConfig + gitlabTestingDefinitionTag + `
-resource "kypo_sandbox_definition" "test" {
-  url = "https://gitlab.ics.muni.cz/muni-kypo-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
+resource "crczp_sandbox_definition" "test" {
+  url = "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
   rev = gitlab_project_tag.terraform_testing_definition[1].name
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("kypo_sandbox_definition.test", "url", "https://gitlab.ics.muni.cz/muni-kypo-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"),
-					resource.TestCheckResourceAttr("kypo_sandbox_definition.test", "rev", os.Getenv("TF_VAR_TAG_NAME")+"-1"),
-					resource.TestCheckResourceAttr("kypo_sandbox_definition.test", "name", "terraform-testing-definition"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "id"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.id"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.sub"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.full_name"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.given_name"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.family_name"),
-					resource.TestCheckResourceAttrSet("kypo_sandbox_definition.test", "created_by.mail"),
+					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "url", "https://gitlab.ics.muni.cz/muni-crczp-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"),
+					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "rev", os.Getenv("TF_VAR_TAG_NAME")+"-1"),
+					resource.TestCheckResourceAttr("crczp_sandbox_definition.test", "name", "terraform-testing-definition"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "id"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.id"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.sub"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.full_name"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.given_name"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.family_name"),
+					resource.TestCheckResourceAttrSet("crczp_sandbox_definition.test", "created_by.mail"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
