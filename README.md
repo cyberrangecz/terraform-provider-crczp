@@ -1,42 +1,42 @@
-# Terraform KYPO Provider
+# Terraform CRCZP Provider
 
-Terraform provider for KYPO allows [Terraform](https://www.terraform.io/) to manage [KYPO CRP](https://crp.kypo.muni.cz/) resources.
+Terraform provider for CRCZP allows [Terraform](https://www.terraform.io/) to manage [CRCZP]() resources.
 
-See documentation at the [Terraform Registry](https://registry.terraform.io/providers/vydrazde/kypo/latest/docs).
+See documentation at the [Terraform Registry]().
 
 ## Example Usage
 
 ```terraform
 terraform {
   required_providers {
-    kypo = {
-      source = "vydrazde/kypo"
+    crczp = {
+      source = "cyberrangecz/crczp"
       version = "0.3.1"
     }
   }
 }
 
-provider "kypo" {
-  endpoint  = "https://your.kypo.ex" # Or use KYPO_ENDPOINT env var
-  client_id = "***"                  # Or use KYPO_CLIENT_ID env var
-  username  = "user"                 # Or use KYPO_USERNAME env var
-  password  = "***"                  # Or use KYPO_PASSWORD env var
+provider "crczp" {
+  endpoint  = "https://your.crczp.ex" # Or use CRCZP_ENDPOINT env var
+  client_id = "***"                  # Or use CRCZP_CLIENT_ID env var
+  username  = "user"                 # Or use CRCZP_USERNAME env var
+  password  = "***"                  # Or use CRCZP_PASSWORD env var
 }
 
-resource "kypo_sandbox_definition" "example" {
-  url = "git@gitlab.ics.muni.cz:muni-kypo-trainings/games/junior-hacker.git"
+resource "crczp_sandbox_definition" "example" {
+  url = "https://github.com/cyberrangecz/library-junior-hacker.git"
   rev = "master"
 }
 
-resource "kypo_sandbox_pool" "example" {
+resource "crczp_sandbox_pool" "example" {
   definition = {
-    id = kypo_sandbox_definition.example.id
+    id = crczp_sandbox_definition.example.id
   }
   max_size = 1
 }
 
-resource "kypo_sandbox_allocation_unit" "example" {
-  pool_id = kypo_sandbox_pool.example.id
+resource "crczp_sandbox_allocation_unit" "example" {
+  pool_id = crczp_sandbox_pool.example.id
 }
 ```
 

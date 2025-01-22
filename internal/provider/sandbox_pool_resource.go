@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/cyberrangecz/go-client/pkg/crczp"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/vydrazde/kypo-go-client/pkg/kypo"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -27,7 +27,7 @@ func NewSandboxPoolResource() resource.Resource {
 
 // sandboxPoolResource defines the resource implementation.
 type sandboxPoolResource struct {
-	client *kypo.Client
+	client *crczp.Client
 }
 
 func (r *sandboxPoolResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -195,12 +195,12 @@ func (r *sandboxPoolResource) Configure(_ context.Context, req resource.Configur
 		return
 	}
 
-	client, ok := req.ProviderData.(*kypo.Client)
+	client, ok := req.ProviderData.(*crczp.Client)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected kypo.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected crczp.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -247,7 +247,7 @@ func (r *sandboxPoolResource) Read(ctx context.Context, req resource.ReadRequest
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
 	pool, err := r.client.GetSandboxPool(ctx, id.ValueInt64())
-	if errors.Is(err, kypo.ErrNotFound) {
+	if errors.Is(err, crczp.ErrNotFound) {
 		resp.State.RemoveResource(ctx)
 		return
 	}
@@ -276,7 +276,7 @@ func (r *sandboxPoolResource) Delete(ctx context.Context, req resource.DeleteReq
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
 	err := r.client.DeleteSandboxPool(ctx, id.ValueInt64())
-	if errors.Is(err, kypo.ErrNotFound) {
+	if errors.Is(err, crczp.ErrNotFound) {
 		return
 	}
 	if err != nil {

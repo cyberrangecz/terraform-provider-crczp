@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/cyberrangecz/go-client/pkg/crczp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -12,22 +13,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/vydrazde/kypo-go-client/pkg/kypo"
 )
 
-// Ensure KypoProvider satisfies various provider interfaces.
-var _ provider.Provider = &KypoProvider{}
+// Ensure CrczpProvider satisfies various provider interfaces.
+var _ provider.Provider = &CrczpProvider{}
 
-// KypoProvider defines the provider implementation.
-type KypoProvider struct {
+// CrczpProvider defines the provider implementation.
+type CrczpProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
 	version string
 }
 
-// KypoProviderModel describes the provider data model.
-type KypoProviderModel struct {
+// CrczpProviderModel describes the provider data model.
+type CrczpProviderModel struct {
 	Endpoint   types.String `tfsdk:"endpoint"`
 	Username   types.String `tfsdk:"username"`
 	Password   types.String `tfsdk:"password"`
@@ -36,46 +36,46 @@ type KypoProviderModel struct {
 	RetryCount types.Int64  `tfsdk:"retry_count"`
 }
 
-func (p *KypoProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "kypo"
+func (p *CrczpProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "crczp"
 	resp.Version = p.version
 }
 
-func (p *KypoProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *CrczpProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "URI of the homepage of the KYPO instance, like `https://my.kypo.instance.ex`. Can be set with `KYPO_ENDPOINT` environmental variable.",
+				MarkdownDescription: "URI of the homepage of the CRCZP instance, like `https://my.crczp.instance.ex`. Can be set with `CRCZP_ENDPOINT` environmental variable.",
 				Optional:            true,
 			},
 			"username": schema.StringAttribute{
-				MarkdownDescription: "`username` of the user to login as with `password`. Use either `username` and `password` or just `token`. Can be set with `KYPO_USERNAME` environmental variable.",
+				MarkdownDescription: "`username` of the user to login as with `password`. Use either `username` and `password` or just `token`. Can be set with `CRCZP_USERNAME` environmental variable.",
 				Optional:            true,
 			},
 			"password": schema.StringAttribute{
-				MarkdownDescription: "`password` of the user to login as with `username`. Use either `username` and `password` or just `token`. Can be set with `KYPO_PASSWORD` environmental variable.",
+				MarkdownDescription: "`password` of the user to login as with `username`. Use either `username` and `password` or just `token`. Can be set with `CRCZP_PASSWORD` environmental variable.",
 				Optional:            true,
 				Sensitive:           true,
 			},
 			"token": schema.StringAttribute{
-				MarkdownDescription: "Bearer token to be used. Takes precedence before `username` and `password`. Bearer tokens usually have limited lifespan. Can be set with `KYPO_TOKEN` environmental variable.",
+				MarkdownDescription: "Bearer token to be used. Takes precedence before `username` and `password`. Bearer tokens usually have limited lifespan. Can be set with `CRCZP_TOKEN` environmental variable.",
 				Optional:            true,
 				Sensitive:           true,
 			},
 			"client_id": schema.StringAttribute{
-				MarkdownDescription: "KYPO local OIDC client ID. Will be ignored when `token` is set. Defaults to `KYPO-Client`. Can be set with `KYPO_CLIENT_ID` environmental variable. See [how to get KYPO client_id](https://registry.terraform.io/vydrazde/kypo/latest/docs/guides/getting_oidc_client_id).",
+				MarkdownDescription: "CRCZP local OIDC client ID. Will be ignored when `token` is set. Defaults to `CRCZP-Client`. Can be set with `CRCZP_CLIENT_ID` environmental variable. See [how to get CRCZP client_id](https://registry.terraform.io/vydrazde/crczp/latest/docs/guides/getting_oidc_client_id).",
 				Optional:            true,
 			},
 			"retry_count": schema.Int64Attribute{
-				MarkdownDescription: "How many times to retry failed HTTP requests. There is a delay of 100ms before the first retry. For each following retry, the delay is doubled. Defaults to 0. Can be set with `KYPO_RETRY_COUNT` environmental variable.",
+				MarkdownDescription: "How many times to retry failed HTTP requests. There is a delay of 100ms before the first retry. For each following retry, the delay is doubled. Defaults to 0. Can be set with `CRCZP_RETRY_COUNT` environmental variable.",
 				Optional:            true,
 			},
 		},
 	}
 }
 
-func (p *KypoProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data KypoProviderModel
+func (p *CrczpProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	var data CrczpProviderModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -86,50 +86,50 @@ func (p *KypoProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	if data.Endpoint.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("endpoint"),
-			"Unknown KYPO API Endpoint",
-			"The provider cannot create the KYPO API client as there is an unknown configuration value for the KYPO API endpoint. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the KYPO_ENDPOINT environment variable.",
+			"Unknown CRCZP API Endpoint",
+			"The provider cannot create the CRCZP API client as there is an unknown configuration value for the CRCZP API endpoint. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the CRCZP_ENDPOINT environment variable.",
 		)
 	}
 	if data.Username.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("username"),
-			"Unknown KYPO API Username",
-			"The provider cannot create the KYPO API client as there is an unknown configuration value for the KYPO API username. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the KYPO_USERNAME environment variable.",
+			"Unknown CRCZP API Username",
+			"The provider cannot create the CRCZP API client as there is an unknown configuration value for the CRCZP API username. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the CRCZP_USERNAME environment variable.",
 		)
 	}
 	if data.Password.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("password"),
-			"Unknown KYPO API Password",
-			"The provider cannot create the KYPO API client as there is an unknown configuration value for the KYPO API password. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the KYPO_PASSWORD environment variable.",
+			"Unknown CRCZP API Password",
+			"The provider cannot create the CRCZP API client as there is an unknown configuration value for the CRCZP API password. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the CRCZP_PASSWORD environment variable.",
 		)
 	}
 	if data.Token.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("token"),
-			"Unknown KYPO API Token",
-			"The provider cannot create the KYPO API client as there is an unknown configuration value for the KYPO API token. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the KYPO_TOKEN environment variable.",
+			"Unknown CRCZP API Token",
+			"The provider cannot create the CRCZP API client as there is an unknown configuration value for the CRCZP API token. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the CRCZP_TOKEN environment variable.",
 		)
 	}
 	if data.ClientID.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("client_id"),
-			"Unknown KYPO API Client ID",
-			"The provider cannot create the KYPO API client as there is an unknown configuration value for the KYPO API client ID. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the KYPO_CLIENT_ID environment variable.",
+			"Unknown CRCZP API Client ID",
+			"The provider cannot create the CRCZP API client as there is an unknown configuration value for the CRCZP API client ID. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the CRCZP_CLIENT_ID environment variable.",
 		)
 	}
 
-	endpoint := os.Getenv("KYPO_ENDPOINT")
-	username := os.Getenv("KYPO_USERNAME")
-	password := os.Getenv("KYPO_PASSWORD")
-	token := os.Getenv("KYPO_TOKEN")
-	clientId := os.Getenv("KYPO_CLIENT_ID")
-	retryCountStr := os.Getenv("KYPO_RETRY_COUNT")
+	endpoint := os.Getenv("CRCZP_ENDPOINT")
+	username := os.Getenv("CRCZP_USERNAME")
+	password := os.Getenv("CRCZP_PASSWORD")
+	token := os.Getenv("CRCZP_TOKEN")
+	clientId := os.Getenv("CRCZP_CLIENT_ID")
+	retryCountStr := os.Getenv("CRCZP_RETRY_COUNT")
 
 	retryCount, err := strconv.Atoi(retryCountStr)
 	if err != nil {
@@ -156,7 +156,7 @@ func (p *KypoProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	}
 
 	if clientId == "" {
-		clientId = "KYPO-Client"
+		clientId = "CRCZP-Client"
 	}
 
 	// If any of the expected configurations are missing, return
@@ -164,17 +164,17 @@ func (p *KypoProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	if endpoint == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("endpoint"),
-			"Missing KYPO API Endpoint",
-			"The provider cannot create the KYPO API client as there is a missing or empty value for the KYPO API endpoint. "+
-				"Set the host value in the configuration or use the KYPO_ENDPOINT environment variable. "+
+			"Missing CRCZP API Endpoint",
+			"The provider cannot create the CRCZP API client as there is a missing or empty value for the CRCZP API endpoint. "+
+				"Set the host value in the configuration or use the CRCZP_ENDPOINT environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
 	if token == "" && (username == "" || password == "") {
 		resp.Diagnostics.AddError(
-			"Missing KYPO API Token or Username and Password",
-			"The provider cannot create the KYPO API client as there is a missing or empty value for the KYPO API token or username and password. "+
-				"Set the host value in the configuration or use the KYPO_TOKEN, KYPO_USERNAME and KYPO_PASSWORD environment variables. "+
+			"Missing CRCZP API Token or Username and Password",
+			"The provider cannot create the CRCZP API client as there is a missing or empty value for the CRCZP API token or username and password. "+
+				"Set the host value in the configuration or use the CRCZP_TOKEN, CRCZP_USERNAME and CRCZP_PASSWORD environment variables. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
@@ -182,38 +182,38 @@ func (p *KypoProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	ctx = tflog.SetField(ctx, "kypo_endpoint", endpoint)
-	ctx = tflog.SetField(ctx, "kypo_username", username)
-	ctx = tflog.SetField(ctx, "kypo_password", password)
-	ctx = tflog.SetField(ctx, "kypo_token", token)
+	ctx = tflog.SetField(ctx, "crczp_endpoint", endpoint)
+	ctx = tflog.SetField(ctx, "crczp_username", username)
+	ctx = tflog.SetField(ctx, "crczp_password", password)
+	ctx = tflog.SetField(ctx, "crczp_token", token)
 	ctx = tflog.SetField(ctx, "client_id", clientId)
 	ctx = tflog.SetField(ctx, "retry_count", retryCount)
-	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "kypo_password", "kypo_token")
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "crczp_password", "crczp_token")
 
-	tflog.Debug(ctx, "Creating KYPO client")
-	var client *kypo.Client
+	tflog.Debug(ctx, "Creating CRCZP client")
+	var client *crczp.Client
 
 	if token != "" {
-		client, err = kypo.NewClientWithToken(endpoint, clientId, token)
+		client, err = crczp.NewClientWithToken(endpoint, clientId, token)
 	} else {
-		client, err = kypo.NewClient(endpoint, clientId, username, password)
+		client, err = crczp.NewClient(endpoint, clientId, username, password)
 	}
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Unable to Create KYPO API Client",
-			"An unexpected error occurred when creating the KYPO API client. "+
+			"Unable to Create CRCZP API Client",
+			"An unexpected error occurred when creating the CRCZP API client. "+
 				"If the error is not clear, please contact the provider developers.\n\n"+
-				"KYPO Client Error: "+err.Error(),
+				"CRCZP Client Error: "+err.Error(),
 		)
 		return
 	}
 	client.RetryCount = retryCount
 	resp.DataSourceData = client
 	resp.ResourceData = client
-	tflog.Info(ctx, "Configured KYPO client", map[string]any{"success": true})
+	tflog.Info(ctx, "Configured CRCZP client", map[string]any{"success": true})
 }
 
-func (p *KypoProvider) Resources(_ context.Context) []func() resource.Resource {
+func (p *CrczpProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewSandboxDefinitionResource,
 		NewSandboxPoolResource,
@@ -223,7 +223,7 @@ func (p *KypoProvider) Resources(_ context.Context) []func() resource.Resource {
 	}
 }
 
-func (p *KypoProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+func (p *CrczpProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewSandboxRequestOutputDataSource,
 	}
@@ -231,7 +231,7 @@ func (p *KypoProvider) DataSources(_ context.Context) []func() datasource.DataSo
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &KypoProvider{
+		return &CrczpProvider{
 			version: version,
 		}
 	}
