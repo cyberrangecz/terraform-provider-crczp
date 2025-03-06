@@ -39,10 +39,10 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      - uses: opentofu/setup-opentofu@v1.0.5
         with:
-          terraform_version: "1.6-*"
-          terraform_wrapper: false
+          tofu_version: "~1.9"
+          tofu_wrapper: false
       - run: go generate ./...
       - name: git diff
         run: |
@@ -72,12 +72,12 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         if: matrix.type == 'terraform'
         with:
-          terraform_version: "${{ matrix.version }}-*"
+          terraform_version: "~${{ matrix.version }}"
           terraform_wrapper: false
       - uses: opentofu/setup-opentofu@v1.0.5
         if: matrix.type == 'tofu'
         with:
-          tofu_version: "${{ matrix.version }}-*"
+          tofu_version: "~${{ matrix.version }}"
           tofu_wrapper: false
       - run: go mod download
       - env:

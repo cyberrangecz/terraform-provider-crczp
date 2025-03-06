@@ -87,7 +87,15 @@ func setTimeout(diags *diag.Diagnostics, ctx context.Context, timeoutsValue time
 		return ctx, func() {}
 	}
 
-	timeout, err := time.ParseDuration(value.(types.String).ValueString())
+	valueStr, ok := value.(types.String)
+	if !ok {
+		diags.AddError("Timeout Cannot Be Parsed",
+			fmt.Sprintf("timeout for %q cannot be parsed", timeoutName),
+		)
+		return ctx, func() {}
+	}
+
+	timeout, err := time.ParseDuration(valueStr.ValueString())
 	if err != nil {
 		diags.AddError("Timeout Cannot Be Parsed",
 			fmt.Sprintf("timeout for %q cannot be parsed, %s", timeoutName, err),
@@ -106,7 +114,15 @@ func getPollTime(diags *diag.Diagnostics, ctx context.Context, pollTimeObject ty
 		return pollTimeDefault
 	}
 
-	pollTime, err := time.ParseDuration(value.(types.String).ValueString())
+	valueStr, ok := value.(types.String)
+	if !ok {
+		diags.AddError("Poll Time Cannot Be Parsed",
+			fmt.Sprintf("poll time for %q cannot be parsed", pollTimeName),
+		)
+		return pollTimeDefault
+	}
+
+	pollTime, err := time.ParseDuration(valueStr.ValueString())
 	if err != nil {
 		diags.AddError("Poll Time Cannot Be Parsed",
 			fmt.Sprintf("poll time for %q cannot be parsed, %s", pollTimeName, err),

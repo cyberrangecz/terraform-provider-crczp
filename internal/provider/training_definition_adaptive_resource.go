@@ -129,7 +129,7 @@ func (r *trainingDefinitionAdaptiveResource) Read(ctx context.Context, req resou
 		return
 	}
 
-	diagnostics := diag.Diagnostics{}
+	var diagnostics diag.Diagnostics
 	definition.Content, diagnostics = plan_modifiers.NormalizeJSON(definition.Content)
 	if diagnostics != nil {
 		resp.Diagnostics.Append(diagnostics...)

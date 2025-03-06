@@ -24,8 +24,9 @@ resource "terraform_data" "git_tag" {
   }
   provisioner "local-exec" {
     command = <<EOT
-    GIT_SSH_COMMAND='ssh -o IdentitiesOnly=yes' git clone https://${var.TOKEN}@github.com/cyberrangecz/terraform-testing-definition.git repo
-    cd repo
+    GIT_SSH_COMMAND='ssh -o IdentitiesOnly=yes' git clone https://${var.TOKEN}@github.com/cyberrangecz/terraform-testing-definition.git repo-${self.input.tag_name}
+    cd repo-${self.input.tag_name}
+    git config --global user.email "vydra@cshub.cz"; git config --global user.name "Zdeněk Vydra"
     git tag ${self.input.tag_name} -m ""
     git push origin ${self.input.tag_name}
     EOT
@@ -33,8 +34,10 @@ resource "terraform_data" "git_tag" {
   provisioner "local-exec" {
     when    = destroy
     command = <<EOT
-    cd repo
+    cd repo-${self.input.tag_name}
     git push --delete origin ${self.input.tag_name}
+    cd ..
+    rm -rf repo-${self.input.tag_name}
     EOT
   }
 }

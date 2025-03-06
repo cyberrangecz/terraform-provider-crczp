@@ -91,8 +91,7 @@ func (r *trainingDefinitionResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	diagnostics := diag.Diagnostics{}
-	content, diagnostics = plan_modifiers.NormalizeJSON(content)
+	content, diagnostics := plan_modifiers.NormalizeJSON(content)
 	if diagnostics != nil {
 		resp.Diagnostics.Append(diagnostics...)
 		return
@@ -136,7 +135,7 @@ func (r *trainingDefinitionResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	diagnostics := diag.Diagnostics{}
+	var diagnostics diag.Diagnostics
 	definition.Content, diagnostics = plan_modifiers.NormalizeJSON(definition.Content)
 	if diagnostics != nil {
 		resp.Diagnostics.Append(diagnostics...)
