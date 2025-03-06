@@ -1,23 +1,14 @@
 package provider_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const ltdDefinition = `
-{
- "title" : "test",
- "description" : null,
- "prerequisites" : [ ],
- "outcomes" : [ ],
- "state" : "UNRELEASED",
- "levels" : [ ],
- "estimated_duration" : 0,
- "variant_sandboxes" : false
-}
-`
+const ltdDefinition = "{\"description\":null,\"estimated_duration\":0,\"levels\":[],\"outcomes\":[],\"prerequisites\":[]," +
+	"\"state\":\"UNRELEASED\",\"title\":\"test\",\"variant_sandboxes\":false}"
 
 func TestAccTrainingDefinitionResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -27,8 +18,7 @@ func TestAccTrainingDefinitionResource(t *testing.T) {
 			{
 				Config: providerConfig + `
 resource "crczp_training_definition" "test" {
- content = <<EOL
-` + ltdDefinition + `EOL
+ content = ` + strconv.Quote(ltdDefinition) + `
 }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("crczp_training_definition.test", "content", ltdDefinition),

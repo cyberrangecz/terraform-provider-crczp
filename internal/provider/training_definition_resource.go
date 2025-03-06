@@ -91,6 +91,13 @@ func (r *trainingDefinitionResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
+	diagnostics := diag.Diagnostics{}
+	content, diagnostics = plan_modifiers.NormalizeJSON(content)
+	if diagnostics != nil {
+		resp.Diagnostics.Append(diagnostics...)
+		return
+	}
+
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
 	definition, err := r.client.CreateTrainingDefinition(ctx, content)

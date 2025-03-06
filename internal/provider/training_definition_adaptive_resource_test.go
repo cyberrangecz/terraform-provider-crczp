@@ -1,22 +1,13 @@
 package provider_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const atdDefinition = `
-{
- "title" : "test",
- "description" : null,
- "prerequisites" : [ ],
- "outcomes" : [ ],
- "state" : "UNRELEASED",
- "phases" : [ ],
- "estimated_duration" : 0
-}
-`
+const atdDefinition = "{\"description\":null,\"estimated_duration\":0,\"outcomes\":[],\"phases\":[],\"prerequisites\":[],\"state\":\"UNRELEASED\",\"title\":\"test\"}"
 
 func TestAccTrainingDefinitionAdaptiveResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -26,8 +17,7 @@ func TestAccTrainingDefinitionAdaptiveResource(t *testing.T) {
 			{
 				Config: providerConfig + `
 resource "crczp_training_definition_adaptive" "test" {
- content = <<EOL
-` + atdDefinition + `EOL
+ content = ` + strconv.Quote(atdDefinition) + `
 }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("crczp_training_definition_adaptive.test", "content", atdDefinition),

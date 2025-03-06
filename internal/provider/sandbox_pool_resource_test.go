@@ -13,7 +13,7 @@ func TestAccSandboxPoolResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: providerConfig + gitlabTestingDefinition + `
+				Config: providerConfig + testingDefinition + `
 resource "crczp_sandbox_pool" "test" {
   definition = {
     id = crczp_sandbox_definition.test.id
@@ -61,7 +61,7 @@ resource "crczp_sandbox_pool" "test" {
 			},
 			// Update and Read testing
 			{
-				Config: providerConfig + gitlabTestingDefinition + `
+				Config: providerConfig + testingDefinition + `
 resource "crczp_sandbox_pool" "test" {
   definition = {
     id = crczp_sandbox_definition.test.id

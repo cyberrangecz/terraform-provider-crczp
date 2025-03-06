@@ -7,15 +7,30 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const gitlabTestingDefinitionTag = `
+const testingDefinitionTag = `
 variable "TAG_NAME" {}
+variable "TOKEN" {}
 
-resource "gitlab_project_tag" "terraform_testing_definition" {
-  count   = 2
-
-  name    = "${var.TAG_NAME}-${count.index}"
-  ref     = "master"
-  project = "5211"
+resource "terraform_data" "git_tag" {
+  count = 2
+  input = {
+    tag_name = var.TAG_NAME
+  }
+  provisioner "local-exec" {
+    command = <<EOT
+    GIT_SSH_COMMAND='ssh -o IdentitiesOnly=yes' git clone https://${var.TOKEN}@github.com/cyberrangecz/terraform-testing-definition.git repo
+    cd repo
+    git tag ${self.input.tag_name}-${count.index} -m ""
+    git push origin ${self.input.tag_name}-${count.index}
+    EOT
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<EOT
+    cd repo
+    git push --delete origin ${self.input.tag_name}-${count.index}
+    EOT
+  }
 }
 `
 
@@ -25,10 +40,10 @@ func TestAccSandboxDefinitionResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: providerConfig + gitlabTestingDefinitionTag + `
+				Config: providerConfig + testingDefinitionTag + `
 resource "crczp_sandbox_definition" "test" {
   url = "https://github.com/cyberrangecz/terraform-testing-definition.git"
-  rev = gitlab_project_tag.terraform_testing_definition[0].name
+  rev = "${terraform_data.git_tag[0].output.tag_name}-0"
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -52,10 +67,10 @@ resource "crczp_sandbox_definition" "test" {
 			},
 			// Update and Read testing
 			{
-				Config: providerConfig + gitlabTestingDefinitionTag + `
+				Config: providerConfig + testingDefinitionTag + `
 resource "crczp_sandbox_definition" "test" {
   url = "https://github.com/cyberrangecz/terraform-testing-definition.git"
-  rev = gitlab_project_tag.terraform_testing_definition[1].name
+  rev = "${terraform_data.git_tag[1].output.tag_name}-1"
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
