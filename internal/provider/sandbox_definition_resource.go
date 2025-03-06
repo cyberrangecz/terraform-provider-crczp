@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/cyberrangecz/go-client/pkg/crczp"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/vydrazde/kypo-go-client/pkg/kypo"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -28,7 +28,7 @@ func NewSandboxDefinitionResource() resource.Resource {
 
 // sandboxDefinitionResource defines the resource implementation.
 type sandboxDefinitionResource struct {
-	client *kypo.Client
+	client *crczp.Client
 }
 
 func (r *sandboxDefinitionResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -106,12 +106,12 @@ func (r *sandboxDefinitionResource) Configure(_ context.Context, req resource.Co
 		return
 	}
 
-	client, ok := req.ProviderData.(*kypo.Client)
+	client, ok := req.ProviderData.(*crczp.Client)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected KYPOClient.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected CRCZPClient.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -158,7 +158,7 @@ func (r *sandboxDefinitionResource) Read(ctx context.Context, req resource.ReadR
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
 	definition, err := r.client.GetSandboxDefinition(ctx, id.ValueInt64())
-	if errors.Is(err, kypo.ErrNotFound) {
+	if errors.Is(err, crczp.ErrNotFound) {
 		resp.State.RemoveResource(ctx)
 		return
 	}
@@ -187,7 +187,7 @@ func (r *sandboxDefinitionResource) Delete(ctx context.Context, req resource.Del
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
 	err := r.client.DeleteSandboxDefinition(ctx, id.ValueInt64())
-	if errors.Is(err, kypo.ErrNotFound) {
+	if errors.Is(err, crczp.ErrNotFound) {
 		return
 	}
 	if err != nil {

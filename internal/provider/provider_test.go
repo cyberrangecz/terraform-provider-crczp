@@ -3,34 +3,48 @@ package provider_test
 import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-
-	"terraform-provider-kypo/internal/provider"
+	"terraform-provider-crczp/internal/provider"
 )
 
 const (
 	providerConfig = `
-provider "kypo" {
-  endpoint  = "https://images.crp.kypo.muni.cz"
+provider "crczp" {
+  endpoint    = "https://stage.crp.kypo.muni.cz"
+  retry_count = 3
 }
 `
-	gitlabProviderConfig = `
-provider "gitlab" {
-  base_url = "https://gitlab.ics.muni.cz/api/v4"
-}
-`
-	gitlabTestingDefinition = gitlabProviderConfig + `
+
+	testingDefinition = `
 variable "TAG_NAME" {}
+variable "TOKEN" {}
 
-resource "gitlab_project_tag" "terraform_testing_definition" {
-  name    = var.TAG_NAME
-  ref     = "master"
-  project = "5211"
+resource "terraform_data" "git_tag" {
+  input = {
+    tag_name = var.TAG_NAME
+  }
+  provisioner "local-exec" {
+    command = <<EOT
+    GIT_SSH_COMMAND='ssh -o IdentitiesOnly=yes' git clone https://${var.TOKEN}@github.com/cyberrangecz/terraform-testing-definition.git repo-${self.input.tag_name}
+    cd repo-${self.input.tag_name}
+    git config --global user.email "vydra@cshub.cz"; git config --global user.name "Zdeněk Vydra"
+    git tag ${self.input.tag_name} -m ""
+    git push origin ${self.input.tag_name}
+    EOT
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<EOT
+    cd repo-${self.input.tag_name}
+    git push --delete origin ${self.input.tag_name}
+    cd ..
+    rm -rf repo-${self.input.tag_name}
+    EOT
+  }
 }
 
-resource "kypo_sandbox_definition" "test" {
-  url = "https://gitlab.ics.muni.cz/muni-kypo-crp/prototypes-and-examples/sandbox-definitions/terraform-provider-testing-definition.git"
-  rev = gitlab_project_tag.terraform_testing_definition.name
+resource "crczp_sandbox_definition" "test" {
+  url = "https://github.com/cyberrangecz/terraform-testing-definition.git"
+  rev = terraform_data.git_tag.output.tag_name
 }
 `
 )
@@ -40,14 +54,7 @@ resource "kypo_sandbox_definition" "test" {
 // CLI command executed to create a provider server to which the CLI can
 // reattach.
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"kypo": providerserver.NewProtocol6WithError(provider.New("test")()),
-}
-
-var gitlabProvider = map[string]resource.ExternalProvider{
-	"gitlab": {
-		Source:            "gitlabhq/gitlab",
-		VersionConstraint: "15.11.0",
-	},
+	"crczp": providerserver.NewProtocol6WithError(provider.New("test")()),
 }
 
 //func testAccPreCheck(t *testing.T) {

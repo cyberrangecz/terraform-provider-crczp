@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"strconv"
+	"terraform-provider-crczp/internal/plan_modifiers"
 
+	"github.com/cyberrangecz/go-client/pkg/crczp"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -14,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/vydrazde/kypo-go-client/pkg/kypo"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -28,7 +30,7 @@ func NewTrainingDefinitionAdaptiveResource() resource.Resource {
 
 // trainingDefinitionAdaptiveResource defines the resource implementation.
 type trainingDefinitionAdaptiveResource struct {
-	client *kypo.Client
+	client *crczp.Client
 }
 
 func (r *trainingDefinitionAdaptiveResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -53,6 +55,7 @@ func (r *trainingDefinitionAdaptiveResource) Schema(_ context.Context, _ resourc
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+					plan_modifiers.JSONNormalizePlanModifier{},
 				},
 			},
 		},
@@ -65,12 +68,12 @@ func (r *trainingDefinitionAdaptiveResource) Configure(_ context.Context, req re
 		return
 	}
 
-	client, ok := req.ProviderData.(*kypo.Client)
+	client, ok := req.ProviderData.(*crczp.Client)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected kypo.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected crczp.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
@@ -116,13 +119,20 @@ func (r *trainingDefinitionAdaptiveResource) Read(ctx context.Context, req resou
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
 	definition, err := r.client.GetTrainingDefinitionAdaptive(ctx, id.ValueInt64())
-	if errors.Is(err, kypo.ErrNotFound) {
+	if errors.Is(err, crczp.ErrNotFound) {
 		resp.State.RemoveResource(ctx)
 		return
 	}
 
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read training definition adaptive, got error: %s", err))
+		return
+	}
+
+	var diagnostics diag.Diagnostics
+	definition.Content, diagnostics = plan_modifiers.NormalizeJSON(definition.Content)
+	if diagnostics != nil {
+		resp.Diagnostics.Append(diagnostics...)
 		return
 	}
 
@@ -145,7 +155,7 @@ func (r *trainingDefinitionAdaptiveResource) Delete(ctx context.Context, req res
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
 	err := r.client.DeleteTrainingDefinitionAdaptive(ctx, id.ValueInt64())
-	if errors.Is(err, kypo.ErrNotFound) {
+	if errors.Is(err, crczp.ErrNotFound) {
 		return
 	}
 	if err != nil {

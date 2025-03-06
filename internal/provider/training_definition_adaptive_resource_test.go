@@ -2,44 +2,32 @@ package provider_test
 
 //
 //import (
+//	"strconv"
 //	"testing"
 //
 //	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 //)
 //
-//const atdDefinition = `
-//{
-//  "title" : "test",
-//  "description" : null,
-//  "prerequisites" : [ ],
-//  "outcomes" : [ ],
-//  "state" : "UNRELEASED",
-//  "show_stepper_bar" : true,
-//  "phases" : [ ],
-//  "estimated_duration" : 0
-//}
-//`
+//const atdDefinition = "{\"description\":null,\"estimated_duration\":0,\"outcomes\":[],\"phases\":[],\"prerequisites\":[],\"state\":\"UNRELEASED\",\"title\":\"test\"}"
 //
 //func TestAccTrainingDefinitionAdaptiveResource(t *testing.T) {
 //	resource.Test(t, resource.TestCase{
 //		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-//		ExternalProviders:        gitlabProvider,
 //		Steps: []resource.TestStep{
 //			// Create and Read testing
 //			{
 //				Config: providerConfig + `
-//resource "kypo_training_definition_adaptive" "test" {
-//  content = <<EOL
-//` + atdDefinition + `EOL
+//resource "crczp_training_definition_adaptive" "test" {
+// content = ` + strconv.Quote(atdDefinition) + `
 //}`,
 //				Check: resource.ComposeAggregateTestCheckFunc(
-//					resource.TestCheckResourceAttr("kypo_training_definition_adaptive.test", "content", atdDefinition),
-//					resource.TestCheckResourceAttrSet("kypo_training_definition_adaptive.test", "id"),
+//					resource.TestCheckResourceAttr("crczp_training_definition_adaptive.test", "content", atdDefinition),
+//					resource.TestCheckResourceAttrSet("crczp_training_definition_adaptive.test", "id"),
 //				),
 //			},
 //			// ImportState testing
 //			{
-//				ResourceName:      "kypo_training_definition_adaptive.test",
+//				ResourceName:      "crczp_training_definition_adaptive.test",
 //				ImportState:       true,
 //				ImportStateVerify: true,
 //			},
