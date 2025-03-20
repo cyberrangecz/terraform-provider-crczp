@@ -1,6 +1,5 @@
 package provider_test
 
-
 import (
 	"strconv"
 	"testing"
