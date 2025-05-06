@@ -27,6 +27,10 @@ resource "crczp_sandbox_definition" "example" {
 - `rev` (String) Revision of the Git repository of the sandbox definition
 - `url` (String) Url to the Git repository of the sandbox definition
 
+### Optional
+
+- `refresh_image_cache` (Boolean) Whether to refresh the list of cloud images before creating the sandbox definition
+
 ### Read-Only
 
 - `created_by` (Attributes) Who created the sandbox definition (see [below for nested schema](#nestedatt--created_by))
