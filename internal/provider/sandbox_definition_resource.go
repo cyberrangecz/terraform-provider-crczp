@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -66,6 +67,12 @@ func (r *sandboxDefinitionResource) Schema(_ context.Context, _ resource.SchemaR
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"refresh_image_cache": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Whether to refresh the list of cloud images before creating the sandbox definition",
+				Default:             booldefault.StaticBool(false),
+			},
 			"created_by": schema.SingleNestedAttribute{
 				MarkdownDescription: "Who created the sandbox definition",
 				Computed:            true,
@@ -121,17 +128,25 @@ func (r *sandboxDefinitionResource) Configure(_ context.Context, req resource.Co
 
 func (r *sandboxDefinitionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var url, rev string
+	var refresh_image_cache bool
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("url"), &url)...)
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("rev"), &rev)...)
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("refresh_image_cache"), &refresh_image_cache)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
+	if refresh_image_cache {
+		_, err := r.client.GetImagesByPage(ctx, 1, 1)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to refresh image cache, got error: %s", err))
+			return
+		}
+	}
+
 	definition, err := r.client.CreateSandboxDefinition(ctx, url, rev)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create sandbox definition, got error: %s", err))
@@ -143,7 +158,8 @@ func (r *sandboxDefinitionResource) Create(ctx context.Context, req resource.Cre
 	tflog.Trace(ctx, fmt.Sprintf("created sandbox definition %d", definition.Id))
 
 	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &definition)...)
+	setState(ctx, *definition, response{State: &resp.State, Diagnostics: &resp.Diagnostics})
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("refresh_image_cache"), refresh_image_cache)...)
 }
 
 func (r *sandboxDefinitionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -169,10 +185,13 @@ func (r *sandboxDefinitionResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &definition)...)
+	setState(ctx, *definition, response{State: &resp.State, Diagnostics: &resp.Diagnostics})
 }
 
-func (r *sandboxDefinitionResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {
+func (r *sandboxDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var refresh_image_cache bool
+	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("refresh_image_cache"), &refresh_image_cache)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("refresh_image_cache"), refresh_image_cache)...)
 }
 
 func (r *sandboxDefinitionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
