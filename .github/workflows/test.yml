@@ -83,6 +83,7 @@ jobs:
       - env:
           TF_ACC: "1"
           TF_VAR_TAG_NAME: "${{ github.ref_name }}-${{ github.run_id }}-${{ matrix.type }}-${{ matrix.version }}"
+          CRCZP_ENDPOINT: ${{ secrets.CRCZP_ENDPOINT }}
           CRCZP_USERNAME: ${{ secrets.CRCZP_USERNAME }}
           CRCZP_PASSWORD: ${{ secrets.CRCZP_PASSWORD }}
           TF_VAR_TOKEN: ${{ secrets.TERRAFORM_TESTING_TOKEN }}
