@@ -1,15 +1,15 @@
 package provider_test
 
 import (
+	"terraform-provider-crczp/internal/provider"
+
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"terraform-provider-crczp/internal/provider"
 )
 
 const (
 	providerConfig = `
 provider "crczp" {
-  endpoint    = "https://stage.crp.kypo.muni.cz"
   retry_count = 3
 }
 `
