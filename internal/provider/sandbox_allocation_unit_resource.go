@@ -81,7 +81,7 @@ func warningOrError(diagnostics *diag.Diagnostics, warning bool, summary, errorS
 }
 
 func setTimeout(diags *diag.Diagnostics, ctx context.Context, timeoutsValue timeouts.Value, timeoutName string) (context.Context, context.CancelFunc) {
-	value, ok := timeoutsValue.Object.Attributes()[timeoutName]
+	value, ok := timeoutsValue.Attributes()[timeoutName]
 	if !ok || value.IsNull() || value.IsUnknown() {
 		tflog.Info(ctx, timeoutName+" timeout configuration not found, null or unknown, no timeout will be set")
 		return ctx, func() {}

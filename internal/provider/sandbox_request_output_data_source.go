@@ -18,8 +18,6 @@ var (
 	_ datasource.DataSourceWithConfigure = &sandboxRequestOutputDataSource{}
 )
 
-const int64MaxValue = 9223372036854775807
-
 // NewSandboxRequestOutputDataSource is a helper function to simplify the provider implementation.
 func NewSandboxRequestOutputDataSource() datasource.DataSource {
 	return &sandboxRequestOutputDataSource{}
@@ -97,8 +95,7 @@ func (r *sandboxRequestOutputDataSource) Read(ctx context.Context, req datasourc
 		requestOutput.Stage = types.StringValue("user-ansible")
 	}
 
-	clientRequestOutput, err := r.client.GetSandboxRequestAnsibleOutputs(ctx, requestOutput.Id.ValueInt64(),
-		1, int64MaxValue, requestOutput.Stage.ValueString())
+	clientRequestOutput, err := r.client.GetSandboxRequestAnsibleOutputs(ctx, requestOutput.Id.ValueInt64(), 0, requestOutput.Stage.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read sandbox request output, got error: %s", err))
