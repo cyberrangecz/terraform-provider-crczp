@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"strconv"
-	"terraform-provider-crczp/internal/plan_modifiers"
 
 	"github.com/cyberrangecz/go-client/pkg/crczp"
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -53,9 +52,9 @@ func (r *trainingDefinitionResource) Schema(_ context.Context, _ resource.Schema
 			"content": schema.StringAttribute{
 				MarkdownDescription: "JSON with exported training definition",
 				Required:            true,
+				CustomType:          jsontypes.NormalizedType{},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-					plan_modifiers.JSONNormalizePlanModifier{},
 				},
 			},
 		},
@@ -84,32 +83,19 @@ func (r *trainingDefinitionResource) Configure(_ context.Context, req resource.C
 func (r *trainingDefinitionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var content string
 
-	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("content"), &content)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	content, diagnostics := plan_modifiers.NormalizeJSON(content)
-	if diagnostics != nil {
-		resp.Diagnostics.Append(diagnostics...)
-		return
-	}
-
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
 	definition, err := r.client.CreateTrainingDefinition(ctx, content)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create training definition, got error: %s", err))
 		return
 	}
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, fmt.Sprintf("created training definition %d", definition.Id))
 
-	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &definition)...)
 }
 
@@ -117,13 +103,10 @@ func (r *trainingDefinitionResource) Read(ctx context.Context, req resource.Read
 	var id types.Int64
 
 	resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("id"), &id)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
 	definition, err := r.client.GetTrainingDefinition(ctx, id.ValueInt64())
 	if errors.Is(err, crczp.ErrNotFound) {
 		resp.State.RemoveResource(ctx)
@@ -135,14 +118,6 @@ func (r *trainingDefinitionResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	var diagnostics diag.Diagnostics
-	definition.Content, diagnostics = plan_modifiers.NormalizeJSON(definition.Content)
-	if diagnostics != nil {
-		resp.Diagnostics.Append(diagnostics...)
-		return
-	}
-
-	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &definition)...)
 }
 
@@ -158,8 +133,6 @@ func (r *trainingDefinitionResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
 	err := r.client.DeleteTrainingDefinition(ctx, id.ValueInt64())
 	if errors.Is(err, crczp.ErrNotFound) {
 		return

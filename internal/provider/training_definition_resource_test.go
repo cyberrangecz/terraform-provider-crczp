@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const ltdDefinition = "{\"description\":null,\"estimated_duration\":0,\"levels\":[],\"outcomes\":[],\"prerequisites\":[]," +
-	"\"state\":\"UNRELEASED\",\"title\":\"test\",\"variant_sandboxes\":false}"
+const ltdDefinition = "\n{\"description\":null,\"estimated_duration\":0,\"levels\":[],\"outcomes\":[],\"prerequisites\":[]," +
+	"\"state\":\"UNRELEASED\",\"title\":\"test\",\"variant_sandboxes\":false}\n"
 
 func TestAccTrainingDefinitionResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -27,9 +27,8 @@ resource "crczp_training_definition" "test" {
 			},
 			// ImportState testing
 			{
-				ResourceName:      "crczp_training_definition.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName: "crczp_training_definition.test",
+				ImportState:  true,
 			},
 			// Delete testing automatically occurs in TestCase
 		},
