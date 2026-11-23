@@ -219,7 +219,6 @@ func (p *CrczpProvider) Resources(_ context.Context) []func() resource.Resource 
 		NewSandboxPoolResource,
 		NewSandboxAllocationUnitResource,
 		NewTrainingDefinitionResource,
-		NewTrainingDefinitionAdaptiveResource,
 	}
 }
 
