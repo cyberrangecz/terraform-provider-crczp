@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -50,7 +51,7 @@ func (r *trainingDefinitionResource) Schema(_ context.Context, _ resource.Schema
 				},
 			},
 			"content": schema.StringAttribute{
-				MarkdownDescription: "JSON with exported training definition",
+				MarkdownDescription: "JSON with exported training definition. Properties the backend no longer exports, such as `state`, `estimated_duration`, `variant_sandboxes` or a level's `order`, are ignored when detecting changes made outside Terraform.",
 				Required:            true,
 				CustomType:          jsontypes.NormalizedType{},
 				PlanModifiers: []planmodifier.String{
@@ -118,7 +119,69 @@ func (r *trainingDefinitionResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
+	var storedContent jsontypes.Normalized
+
+	resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("content"), &storedContent)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Newer backends export fewer properties than older exports carry, so keep the stored content
+	// unless the export disagrees with it on a property the export still has.
+	if !storedContent.IsNull() && !storedContent.IsUnknown() &&
+		exportMatchesContent(definition.Content, storedContent.ValueString()) {
+		definition.Content = storedContent.ValueString()
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &definition)...)
+}
+
+// exportMatchesContent reports whether every property of the exported definition is present in the
+// stored content with the same value. Properties only the stored content has are ignored, since the
+// backend no longer exports some properties older exports carry (such as state, estimated_duration,
+// variant_sandboxes or a level's order) and ignores them on import. Arrays must match element by
+// element. Invalid JSON on either side never matches.
+func exportMatchesContent(exported, stored string) bool {
+	var exportedValue, storedValue any
+
+	if err := json.Unmarshal([]byte(exported), &exportedValue); err != nil {
+		return false
+	}
+	if err := json.Unmarshal([]byte(stored), &storedValue); err != nil {
+		return false
+	}
+
+	return exportedSubsetOf(exportedValue, storedValue)
+}
+
+func exportedSubsetOf(exported, stored any) bool {
+	switch exportedValue := exported.(type) {
+	case map[string]any:
+		storedValue, ok := stored.(map[string]any)
+		if !ok {
+			return false
+		}
+		for key, exportedProperty := range exportedValue {
+			storedProperty, ok := storedValue[key]
+			if !ok || !exportedSubsetOf(exportedProperty, storedProperty) {
+				return false
+			}
+		}
+		return true
+	case []any:
+		storedValue, ok := stored.([]any)
+		if !ok || len(storedValue) != len(exportedValue) {
+			return false
+		}
+		for i := range exportedValue {
+			if !exportedSubsetOf(exportedValue[i], storedValue[i]) {
+				return false
+			}
+		}
+		return true
+	default:
+		return exported == stored
+	}
 }
 
 func (r *trainingDefinitionResource) Update(_ context.Context, _ resource.UpdateRequest, _ *resource.UpdateResponse) {

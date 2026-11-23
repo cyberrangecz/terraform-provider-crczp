@@ -34,7 +34,7 @@ resource "crczp_training_definition" "example" {
 
 ### Required
 
-- `content` (String) JSON with exported training definition
+- `content` (String) JSON with exported training definition. Properties the backend no longer exports, such as `state`, `estimated_duration`, `variant_sandboxes` or a level's `order`, are ignored when detecting changes made outside Terraform.
 
 ### Read-Only
 
