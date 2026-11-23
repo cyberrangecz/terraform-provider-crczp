@@ -3,7 +3,7 @@ module terraform-provider-crczp
 go 1.25.0
 
 require (
-	github.com/cyberrangecz/go-client v0.0.0-20260325142250-3a290f156367
+	github.com/cyberrangecz/go-client v0.0.0-20261120143714-1cfcda6bf1fd
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/terraform-plugin-docs v0.21.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
@@ -14,7 +14,6 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.15.0
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90
 )
-
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect

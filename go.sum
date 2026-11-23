@@ -38,6 +38,8 @@ github.com/cyberrangecz/go-client v0.0.0-20260325140250-068bf56b0369 h1:Z+BAwbxj
 github.com/cyberrangecz/go-client v0.0.0-20260325140250-068bf56b0369/go.mod h1:y0I+mzOSlZfda2hcarfNMuAamdAHSaPSkGWRUyzFoJk=
 github.com/cyberrangecz/go-client v0.0.0-20260325142250-3a290f156367 h1:wvxflFT2i9/0LVCETSi7k3MFGB78xC3VkxT949L/TXk=
 github.com/cyberrangecz/go-client v0.0.0-20260325142250-3a290f156367/go.mod h1:y0I+mzOSlZfda2hcarfNMuAamdAHSaPSkGWRUyzFoJk=
+github.com/cyberrangecz/go-client v0.0.0-20261120143714-1cfcda6bf1fd h1:JDCeYvuM/zg/7dMLjpJYC30U1EZKFtF0p8yXFaK7iyg=
+github.com/cyberrangecz/go-client v0.0.0-20261120143714-1cfcda6bf1fd/go.mod h1:y0I+mzOSlZfda2hcarfNMuAamdAHSaPSkGWRUyzFoJk=
 github.com/cyphar/filepath-securejoin v0.4.1 h1:JyxxyPEaktOD+GAnqIqTf9A8tHyAG22rowi7HkoSU1s=
 github.com/cyphar/filepath-securejoin v0.4.1/go.mod h1:Sdj7gXlvMcPZsbhwhQ33GguGLDGQL7h7bg04C/+u9jI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
